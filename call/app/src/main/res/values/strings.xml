@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Call</string>
+    <string name="action_disconnect">Disconnect</string>
+
+    <string name="hint_uid">uid</string>
+    <string name="hint_display_name">display name</string>
+    <string name="connection_btn">Connect</string>
+
+    <string name="hint_call_uid">Contact</string>
+    <string name="call_btn">Call</string>
+    <string name="hangup_btn">Hangup</string>
+
+</resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Presence</string>
+    <string name="action_disconnect">Disconnect</string>
+
+    <string name="hint_uid">uid</string>
+    <string name="hint_display_name">display name</string>
+    <string name="connection_btn">Connect</string>
+
+    <string name="my_presence">My presence:</string>
+    <string name="hint_presence_uid">Contact uid</string>
+    <string name="add_roster_btn">Add</string>
+    <string name="check_presence_btn">Check</string>
+    <string name="roster_btn">Roster</string>
+    <string name="presence_empty">Empty Roster…</string>
+    <string name="requested_presence">Requested presence:</string>
+    <string name="roster_updated">Roster updated</string>
+
+</resources>
