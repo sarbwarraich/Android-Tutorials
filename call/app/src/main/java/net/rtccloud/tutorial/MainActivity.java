@@ -4,6 +4,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.view.Gravity;
@@ -172,6 +173,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public boolean onPrepareOptionsMenu(Menu menu) {
         RtccEngine.Status status = Rtcc.getEngineStatus();
         menu.findItem(R.id.action_disconnect).setVisible(status == RtccEngine.Status.AUTHENTICATED || status == RtccEngine.Status.CONNECTED);
+        menu.findItem(R.id.action_sdk).setTitle(Html.fromHtml("v<b>" + Rtcc.getVersionFull(this) + "</b>"));
         return super.onPrepareOptionsMenu(menu);
     }
 

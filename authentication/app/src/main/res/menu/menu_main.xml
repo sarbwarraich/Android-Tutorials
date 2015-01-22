@@ -6,4 +6,8 @@
         android:id="@+id/action_disconnect"
         android:title="@string/action_disconnect"
         app:showAsAction="always|withText" />
+    <item
+        android:id="@+id/action_sdk"
+        app:showAsAction="never"
+        android:title="" />
 </menu>
