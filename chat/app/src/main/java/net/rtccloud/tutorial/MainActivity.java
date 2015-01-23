@@ -158,6 +158,9 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 ((ArrayAdapter) mChatList.getAdapter()).notifyDataSetChanged();
                 Rtcc.instance().disconnect();
                 return true;
+            case R.id.action_sdk:
+                Toast.makeText(this, net.rtccloud.sdk.Build.BUILD_DATE, Toast.LENGTH_SHORT).show();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
