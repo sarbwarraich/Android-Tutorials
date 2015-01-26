@@ -7,7 +7,7 @@ A detailed documentation of this tutorial is available [here](https://docs.sight
 #### Configuration
 
 Every tutorial has a configuration file located here:  
-[`Tutorials/app/src/main/java/net/rtccloud/tutorial/Config.java`](app/src/main/java/net/rtccloud/tutorial/Config.java)
+[`app/src/main/java/net/rtccloud/tutorial/Config.java`](app/src/main/java/net/rtccloud/tutorial/Config.java)
 
 You **must** set these three values in order to run the tutorial:
 

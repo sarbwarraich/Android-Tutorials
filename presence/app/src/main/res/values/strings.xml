@@ -8,6 +8,9 @@
     <string name="hint_display_name">display name</string>
     <string name="connection_btn">Connect</string>
 
+    <string name="error_title">Configuration error</string>
+    <string name="error_message"><b>APP_ID</b> and <b>AUTH_URL</b> variables must be set in the <b><i>Config.java</i></b> file.</string>
+
     <string name="my_presence">My presence:</string>
     <string name="hint_presence_uid">Contact uid</string>
     <string name="add_roster_btn">Add</string>

@@ -1,5 +1,7 @@
 package net.rtccloud.tutorial;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -128,6 +130,19 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         Rtcc.eventBus().register(this);
+        if (TextUtils.isEmpty(Config.APP_ID) || TextUtils.isEmpty(Config.AUTH_URL)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.error_title)
+                    .setMessage(R.string.error_message)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+        }
     }
 
     @Override

@@ -8,6 +8,9 @@
     <string name="hint_display_name">display name</string>
     <string name="connection_btn">Connect</string>
 
+    <string name="error_title">Configuration error</string>
+    <string name="error_message"><b>APP_ID</b> and <b>AUTH_URL</b> variables must be set in the <b><i>Config.java</i></b> file.</string>
+
     <string name="hint_call_uid">Contact</string>
     <string name="call_btn">Call</string>
     <string name="hangup_btn">Hangup</string>

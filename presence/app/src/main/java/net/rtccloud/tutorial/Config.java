@@ -2,9 +2,9 @@ package net.rtccloud.tutorial;
 
 public class Config {
 
-    public static final String APP_ID = "";
-    public static final String AUTH_URL = "";
-    public static final String AUTH_PWD = "";
+    public static final String APP_ID = null;
+    public static final String AUTH_URL = null;
+    public static final String AUTH_PWD = null;
 
     public static String sUid;
     public static String sDisplayName;
