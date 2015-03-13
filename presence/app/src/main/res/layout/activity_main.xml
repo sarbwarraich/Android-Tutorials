@@ -66,6 +66,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
+            <Button
+                android:id="@+id/set_presence_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/set_presence_btn" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -73,7 +79,8 @@
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
 
             <EditText
                 android:id="@+id/presence_uid"
@@ -93,6 +100,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/add_roster_btn" />
+
+                <Button
+                    android:id="@+id/remove_roster_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/remove_roster_btn" />
 
                 <Button
                     android:id="@+id/check_presence_btn"

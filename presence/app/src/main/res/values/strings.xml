@@ -13,7 +13,9 @@
 
     <string name="my_presence">My presence:</string>
     <string name="hint_presence_uid">Contact uid</string>
+    <string name="set_presence_btn">Set</string>
     <string name="add_roster_btn">Add</string>
+    <string name="remove_roster_btn">Remove</string>
     <string name="check_presence_btn">Check</string>
     <string name="roster_btn">Roster</string>
     <string name="presence_empty">Empty Roster…</string>

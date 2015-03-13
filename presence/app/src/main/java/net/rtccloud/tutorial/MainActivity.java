@@ -40,7 +40,6 @@ import net.rtccloud.sdk.event.global.RegistrationEvent;
 import net.rtccloud.sdk.event.presence.PresenceRequestEvent;
 import net.rtccloud.sdk.event.presence.PresenceUpdateEvent;
 import net.rtccloud.sdk.event.roster.RosterEvent;
-import net.rtccloud.tutorial.model.Presence;
 import net.rtccloud.tutorial.model.Roster;
 
 import org.json.JSONException;
@@ -58,6 +57,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private View mPresenceContainer;
 
     private EditText mPresenceUid;
+    private Spinner mPresenceSpinner;
     private ListView mPresenceList;
 
 
@@ -73,24 +73,24 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         mPresenceContainer = findViewById(R.id.presence_container);
         mPresenceUid = (EditText) findViewById(R.id.presence_uid);
         findViewById(R.id.connection_btn).setOnClickListener(this);
+        findViewById(R.id.set_presence_btn).setOnClickListener(this);
         findViewById(R.id.add_roster_btn).setOnClickListener(this);
+        findViewById(R.id.remove_roster_btn).setOnClickListener(this);
         findViewById(R.id.check_presence_btn).setOnClickListener(this);
         findViewById(R.id.check_roster_btn).setOnClickListener(this);
 
-        ArrayAdapter<Presence> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, Presence.values());
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        Spinner spinner = (Spinner) findViewById(R.id.presence_spinner);
-        spinner.setAdapter(spinnerAdapter);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mPresenceSpinner = (Spinner) findViewById(R.id.presence_spinner);
+        mPresenceSpinner.setAdapter(new ArrayAdapter<String>(this, R.layout.presence_item) {
+            private final static int MAX_PRESENCE = 256;
+
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (Rtcc.getEngineStatus() == RtccEngine.Status.AUTHENTICATED) {
-                    Rtcc.instance().presence().set(position);
-                }
+            public int getCount() {
+                return MAX_PRESENCE;
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+            public String getItem(int position) {
+                return String.valueOf(position);
             }
         });
 
@@ -101,8 +101,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         mPresenceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Roster.remove(listAdapter.getItem(position));
-                listAdapter.notifyDataSetChanged();
+                mPresenceUid.setText(listAdapter.getItem(position).uid);
             }
         });
 
@@ -206,8 +205,14 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 Util.hideSoftKeyboard(mConnectionContainer);
                 initialize();
                 break;
+            case R.id.set_presence_btn:
+                setPresence();
+                break;
             case R.id.add_roster_btn:
                 addToRoster();
+                break;
+            case R.id.remove_roster_btn:
+                removeFromRoster();
                 break;
             case R.id.check_presence_btn:
                 checkPresence();
@@ -285,18 +290,32 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         mRequestQueue.add(request);
     }
 
+    private void setPresence() {
+        Rtcc.instance().presence().set(Integer.parseInt(String.valueOf(mPresenceSpinner.getSelectedItem())));
+    }
+
     private void addToRoster() {
+        Util.hideSoftKeyboard(mPresenceUid);
         final String uid = mPresenceUid.getText().toString();
         Roster.add(uid);
         Rtcc.instance().roster().add(uid);
         ((ArrayAdapter) mPresenceList.getAdapter()).notifyDataSetChanged();
     }
 
+    private void removeFromRoster() {
+        Util.hideSoftKeyboard(mPresenceUid);
+        final String uid = mPresenceUid.getText().toString();
+        Roster.remove(uid);
+        ((ArrayAdapter) mPresenceList.getAdapter()).notifyDataSetChanged();
+    }
+
     private void checkPresence() {
+        Util.hideSoftKeyboard(mPresenceUid);
         Rtcc.instance().presence().request(mPresenceUid.getText().toString());
     }
 
     private void checkRoster() {
+        Util.hideSoftKeyboard(mPresenceUid);
         Rtcc.instance().presence().request();
     }
 
@@ -319,7 +338,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             Roster.update(event.get());
             StringBuilder sb = new StringBuilder(getString(R.string.requested_presence));
             for (Map.Entry<String, Integer> entry : event.get().entrySet()) {
-                sb.append("\n").append(entry.getKey()).append(" ~ ").append(Presence.fromOrdinal(entry.getValue()));
+                sb.append("\n").append(entry.getKey()).append(" ~ ").append(entry.getValue());
             }
             Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT).show();
         }

@@ -49,9 +49,11 @@
         android:gravity="center"
         android:orientation="vertical"
         android:showDividers="middle"
-        android:divider="?android:attr/dividerHorizontal">
+        android:divider="?android:attr/dividerHorizontal"
+        android:animateLayoutChanges="true">
 
         <LinearLayout
+            android:id="@+id/call_outbound_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -60,7 +62,6 @@
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:layout_marginRight="@dimen/activity_horizontal_margin">
-
 
             <EditText
                 android:id="@+id/call_uid"
@@ -71,9 +72,61 @@
                 android:ems="10" />
 
             <Button
-                android:id="@+id/call_hangup_btn"
+                android:id="@+id/call_create_btn"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="@string/call_btn" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/call_hangup_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:text="@string/hangup_btn" />
+
+        <LinearLayout
+            android:id="@+id/call_inbound_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin">
+
+            <TextView
+                android:id="@+id/callee_calling"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/callee_calling" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/call_deny_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/deny_btn"
+                    tools:ignore="ButtonStyle" />
+
+                <Button
+                    android:id="@+id/call_accept_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/accept_btn"
+                    tools:ignore="ButtonStyle" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -97,17 +150,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:showDividers="middle"
+                android:divider="?android:attr/dividerHorizontal">
 
                 <net.rtccloud.sdk.view.VideoOutPreviewFrame
                     android:id="@+id/call_video_out"
-                    android:layout_width="@dimen/picture_in_picture_size"
-                    android:layout_height="@dimen/picture_in_picture_size" />
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="@dimen/video_margin" />
 
                 <net.rtccloud.sdk.view.VideoInFrame
                     android:id="@+id/call_video_in"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="@dimen/video_margin" />
             </LinearLayout>
         </FrameLayout>
 

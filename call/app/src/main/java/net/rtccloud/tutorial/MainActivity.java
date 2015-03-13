@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -54,8 +55,11 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
     private View mConnectionContainer;
     private View mCallContainer;
+    private View mCallOutboundContainer;
+    private View mCallInboundContainer;
 
     private EditText mContactUid;
+    private TextView mCalleeCalling;
     private Button mCallHangup;
     private ProgressBar mCallProgress;
     private LinearLayout mVideoContainer;
@@ -74,15 +78,21 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         mRequestQueue = Volley.newRequestQueue(this);
         mConnectionContainer = findViewById(R.id.connection_container);
         mCallContainer = findViewById(R.id.call_container);
+        mCallOutboundContainer = findViewById(R.id.call_outbound_container);
+        mCallInboundContainer = findViewById(R.id.call_inbound_container);
         mContactUid = (EditText) findViewById(R.id.call_uid);
+        mCalleeCalling = (TextView) findViewById(R.id.callee_calling);
         mCallHangup = (Button) findViewById(R.id.call_hangup_btn);
         mCallProgress = (ProgressBar) findViewById(R.id.call_in_progress);
         mVideoContainer = (LinearLayout) findViewById(R.id.call_video_container);
         mVideoIn = (VideoInFrame) findViewById(R.id.call_video_in);
         mVideoOut = (VideoOutPreviewFrame) findViewById(R.id.call_video_out);
 
-        findViewById(R.id.connection_btn).setOnClickListener(this);
         mCallHangup.setOnClickListener(this);
+        findViewById(R.id.call_create_btn).setOnClickListener(this);
+        findViewById(R.id.connection_btn).setOnClickListener(this);
+        findViewById(R.id.call_accept_btn).setOnClickListener(this);
+        findViewById(R.id.call_deny_btn).setOnClickListener(this);
 
         invalidate();
     }
@@ -116,10 +126,35 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private void invalidateContainers() {
         mConnectionContainer.setVisibility(Rtcc.getEngineStatus() == RtccEngine.Status.UNDEFINED ? View.VISIBLE : View.GONE);
         mCallContainer.setVisibility(Rtcc.getEngineStatus() == RtccEngine.Status.AUTHENTICATED ? View.VISIBLE : View.GONE);
-        mCallHangup.setText(canCall() ? R.string.call_btn : R.string.hangup_btn);
-        mContactUid.setVisibility(canCall() ? View.VISIBLE : View.GONE);
-        mCallProgress.setVisibility(isCallProceeding() ? View.VISIBLE : View.GONE);
-        mVideoContainer.setOrientation(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        boolean vertical = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+        mVideoContainer.setOrientation(vertical ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams videoInParams = (LinearLayout.LayoutParams) mVideoIn.getLayoutParams();
+        LinearLayout.LayoutParams videoOutParams = (LinearLayout.LayoutParams) mVideoOut.getLayoutParams();
+        videoOutParams.width = videoInParams.width = vertical ? ViewGroup.LayoutParams.MATCH_PARENT : 0;
+        videoOutParams.height = videoInParams.height = vertical ? 0 : ViewGroup.LayoutParams.MATCH_PARENT;
+
+        if (isCallRinging()) {
+            Contact contact = sPendingCall.getContact(Contact.DEFAULT_CONTACT_ID);
+            mCalleeCalling.setText(Html.fromHtml(getString(R.string.callee_calling, contact == null ? null : contact.getDisplayName())));
+            mVideoContainer.setVisibility(View.GONE);
+            mCallOutboundContainer.setVisibility(View.GONE);
+            mCallHangup.setVisibility(View.GONE);
+            mCallInboundContainer.setVisibility(View.VISIBLE);
+            mCallProgress.setVisibility(View.VISIBLE);
+        } else if (isCallPending() || isInCall()) {
+            mVideoContainer.setVisibility(isInCall() ? View.VISIBLE : View.GONE);
+            mCallOutboundContainer.setVisibility(View.GONE);
+            mCallInboundContainer.setVisibility(View.GONE);
+            mCallProgress.setVisibility(isInCall() ? View.GONE : View.VISIBLE);
+            mCallHangup.setVisibility(isInCall() || isCallProceeding() || isCallRinging() ? View.VISIBLE : View.GONE);
+        } else {
+            mVideoContainer.setVisibility(View.GONE);
+            mCallInboundContainer.setVisibility(View.GONE);
+            mCallHangup.setVisibility(View.GONE);
+            mCallProgress.setVisibility(View.GONE);
+            mCallOutboundContainer.setVisibility(View.VISIBLE);
+        }
+
 
         if (isCallActive()) {
             Call call = Rtcc.instance().getCurrentCall();
@@ -132,12 +167,16 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         }
     }
 
-    private boolean canCall() {
-        return sPendingCall == null && !isInCall();
+    private static boolean isCallPending() {
+        return sPendingCall != null;
     }
 
     private static boolean isCallProceeding() {
-        return sPendingCall != null;
+        return sPendingCall != null && sPendingCall.getStatus() == Call.CallStatus.PROCEEDING;
+    }
+
+    private static boolean isCallRinging() {
+        return sPendingCall != null && sPendingCall.getStatus() == Call.CallStatus.RINGING;
     }
 
     private static boolean isInCall() {
@@ -187,7 +226,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         RtccEngine.Status status = Rtcc.getEngineStatus();
-        menu.findItem(R.id.action_disconnect).setVisible(status == RtccEngine.Status.AUTHENTICATED || status == RtccEngine.Status.CONNECTED);
+        menu.findItem(R.id.action_disconnect).setVisible((status == RtccEngine.Status.AUTHENTICATED && !isCallActive()) || status == RtccEngine.Status.CONNECTED);
         menu.findItem(R.id.action_sdk).setTitle(Html.fromHtml("v<b>" + Rtcc.getVersionFull(this) + "</b>"));
         return super.onPrepareOptionsMenu(menu);
     }
@@ -212,12 +251,17 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 Util.hideSoftKeyboard(mConnectionContainer);
                 initialize();
                 break;
+            case R.id.call_create_btn:
+                call();
+                break;
             case R.id.call_hangup_btn:
-                if (canCall()) {
-                    call();
-                } else {
-                    hangup();
-                }
+                hangup();
+                break;
+            case R.id.call_accept_btn:
+                accept();
+                break;
+            case R.id.call_deny_btn:
+                deny();
                 break;
         }
     }
@@ -293,6 +337,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         String uid = mContactUid.getText().toString();
         Rtcc.instance().createCall(uid);
         Util.hideSoftKeyboard(mCallContainer);
+        mCallOutboundContainer.setVisibility(View.GONE);
     }
 
     private void hangup() {
@@ -301,7 +346,21 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         } else if (Rtcc.instance().getCurrentCall() != null && Rtcc.instance().getCurrentCall().getStatus() != Call.CallStatus.ENDED) {
             Rtcc.instance().getCurrentCall().hangup();
         }
+        mCallHangup.setVisibility(View.GONE);
+    }
 
+    private void deny() {
+        if (sPendingCall != null && sPendingCall.getStatus() == Call.CallStatus.RINGING) {
+            sPendingCall.hangup();
+            mCallInboundContainer.setVisibility(View.GONE);
+        }
+    }
+
+    private void accept() {
+        if (sPendingCall != null && sPendingCall.getStatus() == Call.CallStatus.RINGING) {
+            sPendingCall.resume();
+            mCallInboundContainer.setVisibility(View.GONE);
+        }
     }
 
     @RtccEventListener

@@ -1,7 +1,6 @@
 package net.rtccloud.tutorial.model;
 
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 
 import net.rtccloud.sdk.Rtcc;
 
@@ -14,19 +13,22 @@ import java.util.Set;
 
 public class Roster {
 
-    private static Map<String, RosterEntry> sMap = new HashMap<>();
-    private static List<RosterEntry> sList = new ArrayList<>();
+    private final static Map<String, RosterEntry> sMap = new HashMap<>();
+    private final static List<RosterEntry> sList = new ArrayList<>();
 
     public static List<RosterEntry> get() {
         return sList;
     }
 
     public static void add(String uid) {
-        if (TextUtils.isEmpty(uid) || sMap.containsKey(uid)) {
+        if (sMap.containsKey(uid)) {
             return;
         }
-        RosterEntry entry = new RosterEntry(uid);
-        sMap.put(uid, entry);
+        add(new RosterEntry(uid));
+    }
+
+    private static void add(RosterEntry entry) {
+        sMap.put(entry.uid, entry);
         sList.add(entry);
         Collections.sort(sList);
     }
@@ -34,30 +36,20 @@ public class Roster {
     public static void updateRoster(Map<String, Integer> map) {
         for (Map.Entry<String, Integer> entry : map.entrySet()) {
             String uid = entry.getKey();
-            Presence presence = Presence.fromOrdinal(entry.getValue());
             if (sMap.containsKey(uid)) {
-                sMap.get(uid).presence = presence;
+                sMap.get(uid).presence = entry.getValue();
             } else {
-                RosterEntry rosterEntry = new RosterEntry(uid);
-                rosterEntry.presence = presence;
-                sMap.put(uid, rosterEntry);
-                sList.add(rosterEntry);
+                RosterEntry rosterEntry = new RosterEntry(uid, entry.getValue());
+                add(rosterEntry);
             }
         }
-        Collections.sort(sList);
     }
 
     public static void update(String uid, int presence) {
-        if (TextUtils.isEmpty(uid)) {
-            return;
-        }
         if (sMap.containsKey(uid)) {
-            sMap.get(uid).presence = Presence.fromOrdinal(presence);
+            sMap.get(uid).presence = presence;
         } else {
-            RosterEntry rosterEntry = new RosterEntry(uid);
-            rosterEntry.presence = Presence.fromOrdinal(presence);
-            sMap.put(uid, rosterEntry);
-            sList.add(rosterEntry);
+            add(new RosterEntry(uid, presence));
         }
     }
 
@@ -74,25 +66,30 @@ public class Roster {
         Rtcc.instance().roster().clear();
     }
 
-    public static void remove(RosterEntry entry) {
-        sMap.remove(entry.uid);
+    public static void remove(String uid) {
+        RosterEntry entry = sMap.remove(uid);
         sList.remove(entry);
-        Rtcc.instance().roster().remove(entry.uid);
+        Rtcc.instance().roster().remove(uid);
     }
 
 
     public static class RosterEntry implements Comparable<RosterEntry> {
 
         public final String uid;
-        public Presence presence;
+        public int presence = -1;
 
         public RosterEntry(String uid) {
             this.uid = uid;
         }
 
+        public RosterEntry(String uid, int presence) {
+            this.uid = uid;
+            this.presence = presence;
+        }
+
         @Override
         public String toString() {
-            return uid + " ~ " + presence;
+            return uid + " ~ " + (presence == -1 ? "•" : presence);
         }
 
         @Override
