@@ -2,11 +2,11 @@
 <resources>
 
     <string name="app_name">Authentication</string>
-    <string name="action_disconnect">Disconnect</string>
+    <string name="menu_disconnect">Disconnect</string>
 
     <string name="hint_uid">uid</string>
     <string name="hint_display_name">display name</string>
-    <string name="connection_btn">Connect</string>
+    <string name="btn_connection">Connect</string>
 
     <string name="error_title">Configuration error</string>
     <string name="error_message"><b>APP_ID</b> and <b>AUTH_URL</b> variables must be set in the <b><i>Config.java</i></b> file.</string>

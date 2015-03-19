@@ -2,24 +2,24 @@
 <resources>
 
     <string name="app_name">Presence</string>
-    <string name="action_disconnect">Disconnect</string>
+    <string name="menu_disconnect">Disconnect</string>
 
     <string name="hint_uid">uid</string>
     <string name="hint_display_name">display name</string>
-    <string name="connection_btn">Connect</string>
+    <string name="btn_connection">Connect</string>
 
     <string name="error_title">Configuration error</string>
     <string name="error_message"><b>APP_ID</b> and <b>AUTH_URL</b> variables must be set in the <b><i>Config.java</i></b> file.</string>
 
-    <string name="my_presence">My presence:</string>
+    <string name="label_presence">My presence</string>
     <string name="hint_presence_uid">Contact uid</string>
-    <string name="set_presence_btn">Set</string>
-    <string name="add_roster_btn">Add</string>
-    <string name="remove_roster_btn">Remove</string>
-    <string name="check_presence_btn">Check</string>
-    <string name="roster_btn">Roster</string>
-    <string name="presence_empty">Empty Roster…</string>
-    <string name="requested_presence">Requested presence:</string>
-    <string name="roster_updated">Roster updated</string>
+    <string name="btn_presence_set">Set</string>
+    <string name="btn_roster_add">Add</string>
+    <string name="btn_roster_remove">Remove</string>
+    <string name="btn_presence_check">Check</string>
+    <string name="btn_presence_check_all">Roster</string>
+    <string name="label_presence_empty">Empty Roster…</string>
+    <string name="toast_presence_requested">Requested presence:</string>
+    <string name="toast_roster_updated">Roster updated</string>
 
 </resources>

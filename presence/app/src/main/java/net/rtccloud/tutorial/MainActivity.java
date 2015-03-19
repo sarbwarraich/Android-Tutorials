@@ -1,7 +1,28 @@
 package net.rtccloud.tutorial;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import net.rtccloud.sdk.Rtcc;
+import net.rtccloud.sdk.RtccEngine;
+import net.rtccloud.sdk.event.RtccEventListener;
+import net.rtccloud.sdk.event.global.AuthenticatedEvent;
+import net.rtccloud.sdk.event.global.ConnectedEvent;
+import net.rtccloud.sdk.event.global.EngineStatusEvent;
+import net.rtccloud.sdk.event.global.RegistrationEvent;
+import net.rtccloud.sdk.event.presence.PresenceRequestEvent;
+import net.rtccloud.sdk.event.presence.PresenceUpdateEvent;
+import net.rtccloud.sdk.event.roster.RosterEvent;
+import net.rtccloud.tutorial.adapter.PresenceListAdapter;
+import net.rtccloud.tutorial.adapter.PresenceSpinnerAdapter;
+import net.rtccloud.tutorial.model.Roster;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -14,97 +35,34 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
-import net.rtccloud.sdk.Logger;
-import net.rtccloud.sdk.Rtcc;
-import net.rtccloud.sdk.RtccEngine;
-import net.rtccloud.sdk.event.RtccEventListener;
-import net.rtccloud.sdk.event.global.AuthenticatedEvent;
-import net.rtccloud.sdk.event.global.ConnectedEvent;
-import net.rtccloud.sdk.event.global.EngineStatusEvent;
-import net.rtccloud.sdk.event.global.RegistrationEvent;
-import net.rtccloud.sdk.event.presence.PresenceRequestEvent;
-import net.rtccloud.sdk.event.presence.PresenceUpdateEvent;
-import net.rtccloud.sdk.event.roster.RosterEvent;
-import net.rtccloud.tutorial.model.Roster;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class MainActivity extends ActionBarActivity implements View.OnClickListener {
 
-    private RequestQueue mRequestQueue;
-
     private View mConnectionContainer;
+
     private View mPresenceContainer;
 
     private EditText mPresenceUid;
-    private Spinner mPresenceSpinner;
-    private ListView mPresenceList;
 
+    private Spinner mPresenceSpinner;
+
+    private BaseAdapter mPresenceListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Logger.setGlobalLevel(Logger.LoggerLevel.VERBOSE);
         setContentView(R.layout.activity_main);
         buildActionBar();
-
-        mRequestQueue = Volley.newRequestQueue(this);
-        mConnectionContainer = findViewById(R.id.connection_container);
-        mPresenceContainer = findViewById(R.id.presence_container);
-        mPresenceUid = (EditText) findViewById(R.id.presence_uid);
-        findViewById(R.id.connection_btn).setOnClickListener(this);
-        findViewById(R.id.set_presence_btn).setOnClickListener(this);
-        findViewById(R.id.add_roster_btn).setOnClickListener(this);
-        findViewById(R.id.remove_roster_btn).setOnClickListener(this);
-        findViewById(R.id.check_presence_btn).setOnClickListener(this);
-        findViewById(R.id.check_roster_btn).setOnClickListener(this);
-
-        mPresenceSpinner = (Spinner) findViewById(R.id.presence_spinner);
-        mPresenceSpinner.setAdapter(new ArrayAdapter<String>(this, R.layout.presence_item) {
-            private final static int MAX_PRESENCE = 256;
-
-            @Override
-            public int getCount() {
-                return MAX_PRESENCE;
-            }
-
-            @Override
-            public String getItem(int position) {
-                return String.valueOf(position);
-            }
-        });
-
-        final ArrayAdapter<Roster.RosterEntry> listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, Roster.get());
-        mPresenceList = (ListView) findViewById(R.id.presence_list);
-        mPresenceList.setEmptyView(findViewById(R.id.presence_list_empty));
-        mPresenceList.setAdapter(listAdapter);
-        mPresenceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mPresenceUid.setText(listAdapter.getItem(position).uid);
-            }
-        });
-
+        findViews();
         invalidate();
     }
 
@@ -119,7 +77,34 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     }
 
     /**
-     * Base method to invalidate the UI
+     * Find views in Activity layout
+     */
+    private void findViews() {
+        mConnectionContainer = findViewById(R.id.container_connection);
+        findViewById(R.id.btn_connection).setOnClickListener(this);
+        mPresenceContainer = findViewById(R.id.container_presence);
+        mPresenceUid = (EditText) findViewById(R.id.txt_presence_uid);
+        findViewById(R.id.btn_presence_set).setOnClickListener(this);
+        findViewById(R.id.btn_roster_add).setOnClickListener(this);
+        findViewById(R.id.btn_roster_remove).setOnClickListener(this);
+        findViewById(R.id.btn_presence_check).setOnClickListener(this);
+        findViewById(R.id.btn_presence_check_all).setOnClickListener(this);
+        mPresenceSpinner = (Spinner) findViewById(R.id.spinner_presence);
+        mPresenceSpinner.setAdapter(new PresenceSpinnerAdapter(this));
+        mPresenceListAdapter = new PresenceListAdapter(this);
+        ListView presenceList = (ListView) findViewById(R.id.list_presence);
+        presenceList.setEmptyView(findViewById(R.id.list_presence_empty));
+        presenceList.setAdapter(mPresenceListAdapter);
+        presenceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mPresenceUid.setText(((Roster.RosterEntry) mPresenceListAdapter.getItem(position)).uid);
+            }
+        });
+    }
+
+    /**
+     * Invalidate the whole User Interface
      */
     private void invalidate() {
         invalidateActionBar();
@@ -130,7 +115,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private void invalidateActionBar() {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle(Rtcc.getEngineStatus().name());
-        actionBar.setSubtitle(Rtcc.getEngineStatus() == RtccEngine.Status.AUTHENTICATED ? (Config.sUid + " ~ " + Config.sDisplayName) : null);
+        actionBar.setSubtitle(Rtcc.getEngineStatus() == RtccEngine.Status.AUTHENTICATED ? (App.sUid + " ~ " + App.sDisplayName) : null);
         actionBar.setDisplayShowCustomEnabled(isLoading());
     }
 
@@ -145,31 +130,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Rtcc.eventBus().register(this);
-        if (TextUtils.isEmpty(Config.APP_ID) || TextUtils.isEmpty(Config.AUTH_URL)) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.error_title)
-                    .setMessage(R.string.error_message)
-                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            finish();
-                        }
-                    })
-                    .setCancelable(false)
-                    .show();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Rtcc.eventBus().unregister(this);
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
@@ -179,7 +139,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public boolean onPrepareOptionsMenu(Menu menu) {
         RtccEngine.Status status = Rtcc.getEngineStatus();
         menu.findItem(R.id.action_disconnect).setVisible(status == RtccEngine.Status.AUTHENTICATED || status == RtccEngine.Status.CONNECTED);
-        menu.findItem(R.id.action_sdk).setTitle(Html.fromHtml("v<b>" + Rtcc.getVersionFull(this) + "</b>"));
+        menu.findItem(R.id.action_sdk).setTitle(Html.fromHtml("v<b>" + Rtcc.getVersionSDK() + "</b>"));
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -187,64 +147,51 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_disconnect:
-                Roster.clear();
-                ((ArrayAdapter) mPresenceList.getAdapter()).notifyDataSetChanged();
                 Rtcc.instance().disconnect();
                 return true;
             case R.id.action_sdk:
-                Toast.makeText(this, net.rtccloud.sdk.Build.BUILD_DATE, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Rtcc.getVersionFull(this) + "\n" + net.rtccloud.sdk.Build.BUILD_DATE, Toast.LENGTH_SHORT).show();
                 return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Rtcc.eventBus().register(this);
+        Util.detectConfigError(this);
+    }
+
+    @Override
+    protected void onPause() {
+        Rtcc.eventBus().unregister(this);
+        super.onPause();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.connection_btn:
+            case R.id.btn_connection:
                 Util.hideSoftKeyboard(mConnectionContainer);
                 initialize();
                 break;
-            case R.id.set_presence_btn:
+            case R.id.btn_presence_set:
                 setPresence();
                 break;
-            case R.id.add_roster_btn:
+            case R.id.btn_roster_add:
                 addToRoster();
                 break;
-            case R.id.remove_roster_btn:
+            case R.id.btn_roster_remove:
                 removeFromRoster();
                 break;
-            case R.id.check_presence_btn:
+            case R.id.btn_presence_check:
                 checkPresence();
                 break;
-            case R.id.check_roster_btn:
+            case R.id.btn_presence_check_all:
                 checkRoster();
                 break;
-        }
-    }
-
-    @RtccEventListener
-    public void onEngineStatusEvent(EngineStatusEvent event) {
-        invalidate();
-    }
-
-    @RtccEventListener
-    public void onConnectedEvent(ConnectedEvent event) {
-        if (event.isSuccess()) {
-            requestToken();
-        } else {
-            if (event.getError() != ConnectedEvent.Error.CLOSED) {
-                Toast.makeText(this, event.getError().name(), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    @RtccEventListener
-    public void onAuthenticatedEvent(AuthenticatedEvent event) {
-        if (event.isSuccess()) {
-            Rtcc.instance().setDisplayName(Config.sDisplayName);
-        } else {
-            Toast.makeText(this, event.getError().name(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -252,8 +199,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
      * Initialize the SDK with the provided inputs
      */
     private void initialize() {
-        Config.sUid = ((EditText) findViewById(R.id.connection_uid)).getText().toString();
-        Config.sDisplayName = ((EditText) findViewById(R.id.connection_display_name)).getText().toString();
+        App.sUid = ((EditText) findViewById(R.id.txt_connection_uid)).getText().toString();
+        App.sDisplayName = ((EditText) findViewById(R.id.txt_connection_display_name)).getText().toString();
         Rtcc.initialize(Config.APP_ID, MainActivity.this);
     }
 
@@ -261,13 +208,13 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
      * Request the token through at AUTH_URL, and authenticate the user
      */
     private void requestToken() {
-        String url = String.format(Config.AUTH_URL, Config.sUid);
+        String url = String.format(Config.AUTH_URL, App.sUid);
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
-                    Config.sToken = response.getString("token");
-                    Rtcc.instance().authenticate(MainActivity.this, Config.sToken, RtccEngine.UserType.INTERNAL);
+                    App.sToken = response.getString("token");
+                    Rtcc.instance().authenticate(RtccEngine.UserType.internal(App.sToken));
                 } catch (JSONException e) {
                     Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_SHORT).show();
                 }
@@ -287,7 +234,36 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 return headers;
             }
         };
-        mRequestQueue.add(request);
+        ((App) getApplication()).requestQueue().add(request);
+    }
+
+    @RtccEventListener
+    public void onEngineStatusEvent(EngineStatusEvent event) {
+        invalidate();
+    }
+
+    @RtccEventListener
+    public void onConnectedEvent(ConnectedEvent event) {
+        if (event.isSuccess()) {
+            requestToken();
+        } else {
+            Util.hideSoftKeyboard(findViewById(R.id.txt_connection_uid));
+            if (event.getError() != ConnectedEvent.Error.CLOSED) {
+                Toast.makeText(this, event.getError().name(), Toast.LENGTH_SHORT).show();
+            } else {
+                Roster.clear();
+                mPresenceListAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    @RtccEventListener
+    public void onAuthenticatedEvent(AuthenticatedEvent event) {
+        if (event.isSuccess()) {
+            Rtcc.instance().setDisplayName(App.sDisplayName);
+        } else {
+            Toast.makeText(this, event.getError().name(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setPresence() {
@@ -299,14 +275,14 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         final String uid = mPresenceUid.getText().toString();
         Roster.add(uid);
         Rtcc.instance().roster().add(uid);
-        ((ArrayAdapter) mPresenceList.getAdapter()).notifyDataSetChanged();
+        mPresenceListAdapter.notifyDataSetChanged();
     }
 
     private void removeFromRoster() {
         Util.hideSoftKeyboard(mPresenceUid);
         final String uid = mPresenceUid.getText().toString();
         Roster.remove(uid);
-        ((ArrayAdapter) mPresenceList.getAdapter()).notifyDataSetChanged();
+        mPresenceListAdapter.notifyDataSetChanged();
     }
 
     private void checkPresence() {
@@ -333,21 +309,22 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public void onPresenceRequestEvent(PresenceRequestEvent event) {
         if (event.isRoster()) {
             Roster.updateRoster(event.get());
-            Toast.makeText(this, R.string.roster_updated, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.toast_roster_updated, Toast.LENGTH_SHORT).show();
         } else {
             Roster.update(event.get());
-            StringBuilder sb = new StringBuilder(getString(R.string.requested_presence));
+            StringBuilder sb = new StringBuilder(getString(R.string.toast_presence_requested));
             for (Map.Entry<String, Integer> entry : event.get().entrySet()) {
                 sb.append("\n").append(entry.getKey()).append(" ~ ").append(entry.getValue());
             }
             Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT).show();
         }
-        ((ArrayAdapter) mPresenceList.getAdapter()).notifyDataSetChanged();
+        mPresenceListAdapter.notifyDataSetChanged();
     }
 
     @RtccEventListener
     public void onPresenceUpdateEvent(PresenceUpdateEvent event) {
         Roster.update(event.getUid(), event.getValue());
-        ((ArrayAdapter) mPresenceList.getAdapter()).notifyDataSetChanged();
+        mPresenceListAdapter.notifyDataSetChanged();
     }
+
 }

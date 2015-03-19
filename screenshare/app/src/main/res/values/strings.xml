@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">ScreenShare</string>
+    <string name="menu_disconnect">Disconnect</string>
+
+    <string name="hint_uid">uid</string>
+    <string name="hint_display_name">display name</string>
+    <string name="btn_connection">Connect</string>
+
+    <string name="error_title">Configuration error</string>
+    <string name="error_message"><b>APP_ID</b> and <b>AUTH_URL</b> variables must be set in the <b><i>Config.java</i></b> file.</string>
+
+    <string name="hint_call_uid">Contact</string>
+    <string name="btn_call_create">Call</string>
+    <string name="btn_call_hangup">Hangup</string>
+    <string name="btn_call_deny">Deny</string>
+    <string name="btn_call_accept">Accept</string>
+    <string name="label_call_calling">&lt;b&gt;%1$s&lt;/b&gt; is calling you</string>
+
+    <string name="btn_call_screenshare_start">Start ScreenShare</string>
+    <string name="btn_call_screenshare_stop">Stop ScreenShare</string>
+
+</resources>

@@ -2,18 +2,18 @@
 <resources>
 
     <string name="app_name">Chat</string>
-    <string name="action_disconnect">Disconnect</string>
+    <string name="menu_disconnect">Disconnect</string>
 
     <string name="hint_uid">uid</string>
     <string name="hint_display_name">display name</string>
-    <string name="connection_btn">Connect</string>
+    <string name="btn_connection">Connect</string>
 
     <string name="error_title">Configuration error</string>
     <string name="error_message"><b>APP_ID</b> and <b>AUTH_URL</b> variables must be set in the <b><i>Config.java</i></b> file.</string>
 
-    <string name="chat_empty">Empty chat…</string>
+    <string name="label_chat_empty">Empty chat…</string>
     <string name="hint_chat_uid">To</string>
     <string name="hint_chat_message">Message</string>
-    <string name="send_message_btn">Send</string>
+    <string name="btn_chat_send">Send</string>
 
 </resources>
