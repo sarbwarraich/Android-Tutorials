@@ -2,7 +2,7 @@
 
 #### Documentation
 
-A detailed documentation of this tutorial is available [here](https://docs.sightcall.com/GD/03_android_SDK/09_Tutorials/00_screenshare.html).
+A detailed documentation of this tutorial is available [here](https://docs.sightcall.com/gd/how-to/make-a-1-1-call/).
 
 #### Configuration
 

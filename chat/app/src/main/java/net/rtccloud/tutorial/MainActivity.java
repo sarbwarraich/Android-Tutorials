@@ -21,8 +21,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -40,7 +40,7 @@ import android.widget.Toast;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private View mConnectionContainer;
 
